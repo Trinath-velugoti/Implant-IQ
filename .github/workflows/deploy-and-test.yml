@@ -25,47 +25,37 @@ jobs:
         with:
           node-version: '20'
 
-      - name: Install Web Dependencies
-        run: |
-          cd web
-          npm install
-
       - name: Install E2E Dependencies
         run: |
           cd web_e2e
           npm init -y
           npm install mocha selenium-webdriver exceljs
 
-      - name: Build Web App
+      - name: Start Static Server
         run: |
-          cd web
-          npm run build || echo "Build failed or not configured, skipping..."
-
-      - name: Start Vite Preview
-        run: |
-          cd web
-          npx vite preview --port 5173 --host 127.0.0.1 --base /Implant-IQ/ &
+          npm install -g serve
+          npx serve web --port 5173 &
           sleep 5
 
       - name: Run Selenium Tests
         run: |
           cd web_e2e
-          export TEST_BASE_URL="http://127.0.0.1:5173/Implant-IQ"
+          export TEST_BASE_URL="http://127.0.0.1:5173"
           npx mocha tests/mega_web_1100.test.js --reporter utils/excelReporter.js
         continue-on-error: true
 
       - name: Prepare Reports for Deployment
         run: |
-          mkdir -p web/dist/reports/latest
-          mkdir -p web/dist/reports/history/build-${{ github.run_number }}
-          cp Test_Results/HTML/execution-report.html web/dist/reports/latest/
-          cp Test_Results/HTML/execution-report.html web/dist/reports/history/build-${{ github.run_number }}/
-          cp Test_Results/Excel/selenium-report.xlsx web/dist/reports/latest/
+          mkdir -p web/reports/latest
+          mkdir -p web/reports/history/build-${{ github.run_number }}
+          cp Test_Results/HTML/execution-report.html web/reports/latest/ || true
+          cp Test_Results/HTML/execution-report.html web/reports/history/build-${{ github.run_number }}/ || true
+          cp Test_Results/Excel/selenium-report.xlsx web/reports/latest/ || true
 
       - name: Upload Pages Artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: 'web/dist'
+          path: 'web'
 
       - name: Deploy to GitHub Pages
         uses: actions/deploy-pages@v4

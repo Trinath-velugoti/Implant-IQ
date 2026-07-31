@@ -24,9 +24,8 @@ jobs:
 
       - name: Build Debug APK
         run: |
-          cd mobile_app
           chmod +x gradlew
-          ./gradlew assembleDebug --no-daemon
+          ./gradlew :app:assembleDebug --no-daemon
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -52,7 +51,12 @@ jobs:
 
       - name: Generate Summary
         run: |
-          cd app_e2e
-          npm install exceljs
-          node utils/generateSummary.js
+          if [ -f Test_Results/Excel/android-report.xlsx ]; then
+            cd app_e2e
+            npm install exceljs
+            node utils/generateSummary.js
+          else
+            echo "## 📱 Android E2E Test Results" >> $GITHUB_STEP_SUMMARY
+            echo "❌ Test report not found. Tests may have failed during execution." >> $GITHUB_STEP_SUMMARY
+          fi
         if: always()

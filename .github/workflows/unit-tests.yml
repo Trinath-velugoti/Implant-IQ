@@ -24,9 +24,8 @@ jobs:
 
       - name: Run Android Unit Tests
         run: |
-          cd mobile_app
           chmod +x gradlew
-          ./gradlew testDebugUnitTest --no-daemon
+          ./gradlew :app:testDebugUnitTest --no-daemon
 
       - name: Publish Android Test Summary
         if: always()

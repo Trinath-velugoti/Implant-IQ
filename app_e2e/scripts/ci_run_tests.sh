@@ -12,4 +12,5 @@ echo "Waiting for Appium..."
 timeout 60 bash -c 'until curl -s http://localhost:4723/status; do sleep 2; done'
 
 echo "Running WDIO Tests..."
+cd app_e2e
 node node_modules/@wdio/cli/bin/wdio.js run wdio.conf.js
