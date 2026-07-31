@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <uses-permission android:name="android.permission.INTERNET"/>
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
+
+    <application
+        android:allowBackup="true"
+        android:icon="@mipmap/ic_launcher"
+        android:label="ImplantIQ"
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:supportsRtl="true"
+        android:theme="@style/Theme.ImplantIQ"
+        android:usesCleartextTraffic="true">
+
+        <activity
+            android:name=".SplashActivity"
+            android:exported="true"
+            android:screenOrientation="portrait">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN"/>
+                <category android:name="android.intent.category.LAUNCHER"/>
+            </intent-filter>
+        </activity>
+
+        <activity android:name=".MainActivity" android:screenOrientation="portrait"/>
+        <activity android:name=".PredictionHistoryActivity" android:screenOrientation="portrait"/>
+        <activity android:name=".PdfExportActivity" android:screenOrientation="portrait"/>
+        <activity android:name=".ExportSuccessActivity" android:screenOrientation="portrait"/>
+        <activity android:name=".SearchResultsActivity" android:screenOrientation="portrait"/>
+        <activity android:name=".FilterMenuActivity" android:screenOrientation="portrait"/>
+        <activity android:name=".TermsActivity" android:screenOrientation="portrait"/>
+        <activity android:name=".AboutActivity" android:screenOrientation="portrait"/>
+        <activity android:name=".PrivacyPolicyActivity" android:screenOrientation="portrait"/>
+        <activity android:name=".AiInsightsActivity" android:screenOrientation="portrait"/>
+        <activity android:name=".AiRecommendationActivity" android:screenOrientation="portrait"/>
+        <activity android:name=".AppointmentReminderActivity" android:screenOrientation="portrait"/>
+        <activity android:name=".UploadXrayActivity" android:screenOrientation="portrait"/>
+        <activity android:name=".ScanReportActivity" android:screenOrientation="portrait"/>
+        <activity android:name=".DetailedAnalyticsActivity" android:screenOrientation="portrait"/>
+        <activity android:name=".ClinicStatisticsActivity" android:screenOrientation="portrait"/>
+        <activity android:name=".ProfileCompletionActivity" android:screenOrientation="portrait"/>
+        <activity android:name=".SecurityVerificationActivity" android:screenOrientation="portrait"/>
+        <activity android:name=".AdminControlPanelActivity" android:screenOrientation="portrait"/>
+        <activity android:name=".DoctorChatActivity" android:screenOrientation="portrait"/>
+        <activity android:name=".ImplantComparisonActivity" android:screenOrientation="portrait"/>
+        <activity android:name=".NotificationCenterActivity" android:screenOrientation="portrait"/>
+        <activity android:name=".AppointmentActivity" android:screenOrientation="portrait"/>
+        <activity android:name=".MedicalReportsActivity" android:screenOrientation="portrait"/>
+        <activity android:name=".EditProfileActivity" android:screenOrientation="portrait"/>
+        <activity android:name=".FaqActivity" android:screenOrientation="portrait"/>
+        <activity android:name=".AiProcessingActivity" android:screenOrientation="portrait"/>
+        <activity android:name=".BoneAnalysisActivity" android:screenOrientation="portrait"/>
+        <activity android:name=".RiskAssessmentActivity" android:screenOrientation="portrait"/>
+        <activity android:name=".OnboardingActivity" android:screenOrientation="portrait"/>
+        <activity android:name=".ForgotPasswordActivity" android:screenOrientation="portrait"/>
+        <activity android:name=".OtpVerificationActivity" android:screenOrientation="portrait"/>
+        <activity android:name=".PatientTimelineActivity" android:screenOrientation="portrait"/>
+        <activity android:name=".SignupActivity" android:screenOrientation="portrait"/>
+        <activity android:name=".LoginActivity" android:screenOrientation="portrait"/>
+        <activity android:name=".DashboardActivity" android:screenOrientation="portrait"/>
+        <activity android:name=".PatientListActivity" android:screenOrientation="portrait"/>
+        <activity android:name=".AddPatientActivity" android:screenOrientation="portrait"/>
+        <activity android:name=".PredictActivity" android:screenOrientation="portrait"/>
+        <activity android:name=".ResultActivity" android:screenOrientation="portrait"/>
+        <activity android:name=".PatientDetailActivity" android:screenOrientation="portrait"/>
+        <activity android:name=".ReportsActivity" android:screenOrientation="portrait"/>
+        <activity android:name=".ScheduleActivity" android:screenOrientation="portrait"/>
+        <activity android:name=".InventoryActivity" android:screenOrientation="portrait"/>
+        <activity android:name=".AILabActivity" android:screenOrientation="portrait"/>
+        <activity android:name=".HistoryActivity" android:screenOrientation="portrait"/>
+        <activity android:name=".SettingsActivity" android:screenOrientation="portrait"/>
+        <activity android:name=".ProfileActivity" android:screenOrientation="portrait"/>
+
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.provider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_paths" />
+        </provider>
+
+    </application>
+</manifest>

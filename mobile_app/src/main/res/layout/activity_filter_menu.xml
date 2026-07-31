@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/background"
+    android:padding="24dp">
+
+    <TextView
+        android:id="@+id/tv_title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Filter Options"
+        android:textColor="@color/white"
+        android:textSize="24sp"
+        android:textStyle="bold"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="32dp"
+        android:text="AGE RANGE"
+        android:textColor="@color/accent_cyan"
+        android:textSize="11sp"
+        android:textStyle="bold"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/tv_title" />
+
+    <RadioGroup
+        android:id="@+id/rg_age"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="48dp"
+        app:layout_constraintTop_toBottomOf="@id/tv_title">
+
+        <RadioButton android:layout_width="match_parent" android:layout_height="wrap_content" android:text="20-30" android:textColor="@color/white" />
+        <RadioButton android:layout_width="match_parent" android:layout_height="wrap_content" android:text="31-40" android:textColor="@color/white" />
+        <RadioButton android:layout_width="match_parent" android:layout_height="wrap_content" android:text="41-50" android:textColor="@color/white" />
+        <RadioButton android:layout_width="match_parent" android:layout_height="wrap_content" android:text="51+" android:textColor="@color/white" />
+    </RadioGroup>
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btn_apply"
+        android:layout_width="match_parent"
+        android:layout_height="54dp"
+        android:text="Apply Filters"
+        android:textColor="@color/background"
+        android:textStyle="bold"
+        app:layout_constraintBottom_toBottomOf="parent" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ImplantIQ Pro | Unified AI Dashboard</title>
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <!-- Professional Desktop Sidebar - Exactly like App Bottom Nav but on Side -->
+    <div class="sidebar" id="sidebar" style="display: none;">
+        <div class="logo-area">🦷 ImplantIQ</div>
+        <div class="nav-group">
+            <button onclick="navTo('dash')" class="nav-item active" id="nav-dash"><span>🏠</span> Dashboard</button>
+            <button onclick="navTo('patients')" class="nav-item" id="nav-pats"><span>👥</span> Patients</button>
+            <button onclick="navTo('predict')" class="nav-item" id="nav-pred"><span>🔍</span> Predict</button>
+            <button onclick="navTo('reps')" class="nav-item" id="nav-reps"><span>📊</span> Reports</button>
+            <button onclick="navTo('settings')" class="nav-item" id="nav-sets"><span>⚙️</span> Settings</button>
+            <button onclick="performLogout()" class="nav-item" style="margin-top: auto; color: var(--error);"><span>🚪</span> Logout Session</button>
+        </div>
+    </div>
+
+    <div class="main-view">
+
+        <!-- Auth Overlay (Splash, Login, Signup, Reset) -->
+        <div id="auth-overlay" class="auth-overlay">
+            <!-- 1. SPLASH -->
+            <div id="scr-splash" class="screen active flex-center">
+                <div class="splash-content">
+                    <div class="splash-logo">🦷</div>
+                    <h1>ImplantIQ</h1>
+                    <p>Advanced Dental Survival AI Ecosystem</p>
+                    <button class="btn-action pill primary" onclick="showAuth('login')">Initialize System</button>
+                </div>
+            </div>
+
+            <!-- 2. LOGIN -->
+            <div id="scr-login" class="screen flex-center">
+                <div class="auth-card">
+                    <div class="auth-header">
+                        <div class="icon-lg">🦷</div>
+                        <h2>Clinical Login</h2>
+                        <p>Access your diagnostic database</p>
+                    </div>
+                    <div class="input-group">
+                        <label>Professional Email</label>
+                        <input type="text" id="l-email" placeholder="email@clinic.com">
+                    </div>
+                    <div class="input-group">
+                        <label>Secure Password</label>
+                        <input type="password" id="l-pass" placeholder="••••••••">
+                    </div>
+                    <p class="link-text text-right" onclick="showAuth('reset')">Forgot Password?</p>
+                    <button class="btn-action pill success full-width" onclick="performLogin()">Authenticate & Enter</button>
+                    <div class="divider"><span>OR SECURE SOCIAL ACCESS</span></div>
+                    <button class="btn-action pill outline full-width google-btn" onclick="performGoogleLogin()">
+                        <img src="https://www.gstatic.com/images/branding/product/1x/gsa_512dp.png" alt="Google"> Continue with Google
+                    </button>
+                    <p class="footer-text">New user? <span class="link-text bold" onclick="showAuth('signup')">Register Clinic</span></p>
+                </div>
+            </div>
+
+            <!-- 3. SIGNUP -->
+            <div id="scr-signup" class="screen flex-center">
+                <div class="auth-card">
+                    <p class="back-link" onclick="showAuth('login')">← Back to Login</p>
+                    <h2>Clinic Registration</h2>
+                    <p class="subtitle">Join the advanced dental AI ecosystem</p>
+                    <div class="input-group"><label>Doctor Full Name</label><input type="text" id="s-name" placeholder="Dr. Trinath"></div>
+                    <div class="input-group"><label>Clinical Email</label><input type="text" id="s-email" placeholder="email@clinic.com"></div>
+                    <div class="input-group"><label>Create Secure Password</label><input type="password" id="s-pass" placeholder="••••••••"></div>
+                    <button class="btn-action pill success full-width mt-1" onclick="performSignup()">Create Account</button>
+                </div>
+            </div>
+
+            <!-- 4. RESET PASSWORD -->
+            <div id="scr-reset" class="screen flex-center">
+                <div class="auth-card">
+                    <p class="back-link" onclick="showAuth('login')">← Back to Login</p>
+                    <h2>Reset Clinical Access</h2>
+                    <div class="input-group mt-2"><label>Registered Email</label><input type="text" id="r-email" placeholder="email@clinic.com"></div>
+                    <button class="btn-action pill primary full-width mt-1" onclick="performResetPassword()">Send Reset Link</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 5. DASHBOARD -->
+        <div id="scr-dash" class="screen">
+            <div class="header-row">
+                <div><h1>Welcome, <span id="doc-name-display">Dr. Trinath</span></h1><p class="subtitle">Real-time clinical metrics</p></div>
+                <div class="profile-thumb">DT</div>
+            </div>
+            <div class="stats-grid">
+                <div class="stat-card" onclick="navTo('patients')"><div class="stat-label">PATIENT REGISTRY</div><div class="stat-value" id="c-pats">...</div></div>
+                <div class="stat-card" onclick="navTo('reps')"><div class="stat-label">AI SUCCESS RATE</div><div class="stat-value text-success" id="c-acc">...</div></div>
+                <div class="stat-card" onclick="navTo('patients', 'today')"><div class="stat-label">ACTIVE TODAY</div><div class="stat-value text-accent" id="c-active">...</div></div>
+                <div class="stat-card" onclick="navTo('patients', 'risk')"><div class="stat-label">CRITICAL RISKS</div><div class="stat-value text-error" id="c-risks">...</div></div>
+            </div>
+            <h2>Recent Clinical Insights</h2>
+            <div id="dash-recent-list" class="card-list"></div>
+            <button class="btn-action pill success full-width mt-2" onclick="navTo('predict')">New Prediction</button>
+        </div>
+
+        <!-- 6. PATIENT REGISTRY -->
+        <div id="scr-patients" class="screen">
+            <div class="header-row"><h1>Patients</h1><div class="header-icons"><span>🔍</span> <span>👥</span></div></div>
+            <input type="text" id="p-search" placeholder="Search patients..." onkeyup="filterPatientsTable()" class="search-bar-full">
+            <div id="full-patient-list" class="card-list"></div>
+            <div class="fab" onclick="navTo('predict')">✚</div>
+        </div>
+
+        <!-- 7. PATIENT DETAILS -->
+        <div id="scr-pat-detail" class="screen">
+            <p class="back-link" onclick="navTo('patients')">← Back to Registry</p>
+            <h1 id="det-name" class="mt-1">Patient Name</h1>
+            <div class="detail-container mt-2">
+                <div class="card">
+                    <h3>Medical Timeline</h3>
+                    <div id="timeline-container" class="timeline">
+                        <!-- Content loaded via script -->
+                    </div>
+                </div>
+                <div class="card">
+                    <h3>Risk Assessment</h3>
+                    <div id="det-risk-badge" class="risk-badge">LOW</div>
+                    <p class="text-center subtitle" id="det-risk-desc">No immediate intervention required.</p>
+                </div>
+            </div>
+            <button class="btn-action pill primary full-width mt-2" onclick="navTo('predict')">New Analysis for this Patient</button>
+        </div>
+
+        <!-- 8. AI LAB PREDICTION -->
+        <div id="scr-predict" class="screen">
+            <h1>AI Lab Prediction</h1>
+            <p class="subtitle">Upload X-Ray for Auto-Extraction</p>
+            <div class="upload-zone-large" onclick="document.getElementById('file-in').click()">
+                <div class="icon-xl">⬆️</div>
+                <p id="up-status">Click to Upload Clinical Image</p>
+                <input type="file" id="file-in" style="display:none" accept="image/*" onchange="handleFileUpload(this)">
+            </div>
+            <h2>Patient Identity</h2>
+            <input type="text" id="in-name" placeholder="Patient Full Name" class="input-large">
+            <h2>Bone & Implant Parameters</h2>
+            <div class="parameters-grid">
+                <div class="input-group"><label>Bone Density</label><input type="number" id="in-den" placeholder="1.45"></div>
+                <div class="input-group"><label>Bone Height</label><input type="number" id="in-h" placeholder="15.0"></div>
+                <div class="input-group"><label>Bone Width</label><input type="number" id="in-w" placeholder="7.5"></div>
+                <div class="input-group"><label>Implant Length</label><input type="number" id="in-l" placeholder="11.5"></div>
+                <div class="input-group"><label>Implant Diameter</label><input type="number" id="in-d" placeholder="4.2"></div>
+            </div>
+            <button class="btn-action pill success full-width mt-2" onclick="runAnalysis()">Execute AI Prediction</button>
+        </div>
+
+        <!-- 9. PREDICTION RESULT SCREEN -->
+        <div id="scr-result" class="screen">
+            <p class="back-link" onclick="navTo('dash')">← Back to Dashboard</p>
+            <h1>Clinical Prediction</h1>
+            <div class="card result-card">
+                <div class="result-header">
+                    <span class="brand">IMPLANT IQ AI LAB</span>
+                    <span id="res-pid" class="pid">ID: #PID-0000</span>
+                </div>
+                <h2 id="res-name" class="res-name">--</h2>
+                <p id="res-date" class="subtitle">Dated: --</p>
+                <div class="result-stats-row">
+                    <div class="res-stat"><small>SURVIVAL</small><div id="res-years">-- Years</div></div>
+                    <div class="res-stat"><small>PROBABILITY</small><div id="res-rate" class="text-success">--%</div></div>
+                    <div class="res-stat"><small>STATUS</small><div id="res-grade" class="text-success">--</div></div>
+                </div>
+            </div>
+            <div class="action-grid-2 mt-2">
+                <button class="btn-action pill outline" onclick="downloadReport('pdf')">📄 PDF Clinical Report</button>
+                <button class="btn-action pill outline" onclick="downloadReport('csv')">📊 CSV Analysis Export</button>
+            </div>
+            <button class="btn-action pill success full-width mt-1" onclick="navTo('predict')">New Prediction</button>
+        </div>
+
+        <!-- 10. ANALYTICS & REPORTS -->
+        <div id="scr-reps" class="screen">
+            <p class="back-link" onclick="navTo('dash')">← Back</p>
+            <h1>Analytics & Reports</h1>
+            <div class="stats-grid-mini">
+                <div class="stat-card-mini"><div class="stat-value" id="rep-total">--</div><div class="stat-label">Total Preds</div></div>
+                <div class="stat-card-mini"><div class="stat-value text-accent" id="rep-acc">--%</div><div class="stat-label">Avg Success</div></div>
+                <div class="stat-card-mini"><div class="stat-value text-success" id="rep-exc">--</div><div class="stat-label">Excellent</div></div>
+            </div>
+            <h2>Success Rate Distribution</h2>
+            <div class="card">
+                <div class="dist-row"><span>Excellent</span><span id="dist-exc">-- cases</span></div>
+                <div class="progress-container"><div id="bar-exc" class="progress-bar-fill bg-success" style="width: 0%;"></div></div>
+                <div class="dist-row mt-1"><span>Good</span><span id="dist-good">-- cases</span></div>
+                <div class="progress-container"><div id="bar-good" class="progress-bar-fill bg-accent" style="width: 0%;"></div></div>
+                <div class="dist-row mt-1"><span>Risk</span><span id="dist-risk">-- cases</span></div>
+                <div class="progress-container"><div id="bar-risk" class="progress-bar-fill bg-error" style="width: 0%;"></div></div>
+            </div>
+            <button class="btn-action pill primary full-width mt-2" onclick="downloadDataset()">Export Dataset</button>
+        </div>
+
+        <!-- 11. SETTINGS -->
+        <div id="scr-settings" class="screen">
+            <h1>Settings</h1>
+            <div class="setting-item-card mt-2" onclick="navTo('admin')">
+                <div class="setting-icon">⚙️</div>
+                <div class="setting-text"><strong>Admin Control Panel</strong><p>System & API monitoring</p></div>
+            </div>
+            <h3 class="section-title">SUPPORT</h3>
+            <div class="settings-list">
+                <div class="list-item" onclick="navTo('chat')"><span>💬</span> <strong>Live Doctor Chat</strong></div>
+                <div class="list-item" onclick="showFAQ()"><span>❓</span> <strong>Clinical FAQ</strong></div>
+                <div class="list-item" onclick="alert('Privacy: HIPAA SECURE')"><span>🛡️</span> <strong>Privacy Policy</strong></div>
+                <div class="list-item" onclick="alert('Terms: Enterprise License')"><span>📄</span> <strong>Terms & Conditions</strong></div>
+                <div class="list-item" onclick="alert('About: ImplantIQ Pro 2026')"><span>ℹ️</span> <strong>About</strong></div>
+            </div>
+            <button class="btn-action pill primary full-width mt-2" onclick="navTo('profile')">View Doctor Profile</button>
+            <button class="btn-action pill outline full-width mt-1" onclick="downloadDataset()">Export All Patient Data</button>
+            <p class="logout-link" onclick="performLogout()">Logout Session</p>
+        </div>
+
+        <!-- 12. ADMIN PANEL -->
+        <div id="scr-admin" class="screen">
+            <p class="back-link" onclick="navTo('settings')">← Back to Settings</p>
+            <h1>Admin Control Panel</h1>
+            <div class="stats-grid mt-2">
+                <div class="stat-card"><div class="stat-label">API Server</div><div class="stat-value" id="adm-api">Checking...</div></div>
+                <div class="stat-card"><div class="stat-label">Database</div><div class="stat-value" id="adm-db">Checking...</div></div>
+                <div class="stat-card"><div class="stat-label">Uptime</div><div class="stat-value">99.9%</div></div>
+            </div>
+            <button class="btn-action pill primary full-width" onclick="fetchAdminStats()">Refresh Health Check</button>
+        </div>
+
+        <!-- 13. CHAT -->
+        <div id="scr-chat" class="screen">
+            <p class="back-link" onclick="navTo('settings')">← Back</p>
+            <h1>Support Chat</h1>
+            <div class="card chat-card">
+                <div id="chat-container" class="chat-container">
+                    <div class="msg support">Support: How can we help, Dr. Trinath?</div>
+                </div>
+                <div class="chat-input-row">
+                    <input type="text" id="chat-input" placeholder="Type query...">
+                    <button class="btn-action pill primary" onclick="sendSupportChat()">Send</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 14. PROFILE -->
+        <div id="scr-profile" class="screen">
+            <p class="back-link" onclick="navTo('settings')">← Back</p>
+            <div class="profile-card-full">
+                <div class="profile-header-main">
+                    <div class="avatar-xl">DT</div>
+                    <h1 id="prof-name">Dr. Trinath</h1>
+                    <p class="tag">Senior Implant Surgeon</p>
+                </div>
+                <div class="profile-details">
+                    <div class="detail-item"><label>Full Name</label><p>Dr. Trinath Velugoti</p></div>
+                    <div class="detail-item"><label>Organization</label><p>City Dental Clinic</p></div>
+                    <div class="detail-item"><label>Email Address</label><p id="prof-email">doctor@implantiq.com</p></div>
+                    <div class="detail-item"><label>Country</label><p>India</p></div>
+                    <div class="detail-item"><label>License No.</label><p>DENT-88291-IX</p></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 15. PROCESSING LOADER -->
+        <div id="scr-proc" class="screen flex-center" style="display: none;">
+            <div class="brain-loader">🧠</div>
+            <h2>Syncing with AI Backend</h2>
+            <p id="p-status" class="subtitle">Optimizing neural weights...</p>
+            <div class="progress-bar-large">
+                <div id="p-bar" class="progress-fill"></div>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
