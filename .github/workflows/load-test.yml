@@ -2,6 +2,7 @@ name: API Load Test
 
 on:
   push:
+    branches: [ master, main ]
     paths:
       - 'backend/**'
   workflow_dispatch:

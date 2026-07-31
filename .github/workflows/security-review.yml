@@ -2,6 +2,7 @@ name: Security & Validation Review
 
 on:
   push:
+    branches: [ master, main ]
     paths:
       - 'backend/**'
       - 'web/**'
