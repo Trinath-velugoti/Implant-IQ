@@ -23,7 +23,10 @@ jobs:
           cache: 'gradle'
 
       - name: Run Android Unit Tests
-        run: ./gradlew testDebugUnitTest --no-daemon
+        run: |
+          cd mobile_app
+          chmod +x gradlew
+          ./gradlew testDebugUnitTest --no-daemon
 
       - name: Publish Android Test Summary
         if: always()

@@ -23,7 +23,10 @@ jobs:
           cache: 'gradle'
 
       - name: Build Debug APK
-        run: ./gradlew assembleDebug --no-daemon
+        run: |
+          cd mobile_app
+          chmod +x gradlew
+          ./gradlew assembleDebug --no-daemon
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
