@@ -48,9 +48,9 @@ jobs:
         run: |
           mkdir -p web/reports/latest
           mkdir -p web/reports/history/build-${{ github.run_number }}
-          cp Test_Results/HTML/execution-report.html web/reports/latest/ || true
-          cp Test_Results/HTML/execution-report.html web/reports/history/build-${{ github.run_number }}/ || true
-          cp Test_Results/Excel/selenium-report.xlsx web/reports/latest/ || true
+          cp web_e2e/Test_Results/HTML/execution-report.html web/reports/latest/ || true
+          cp web_e2e/Test_Results/HTML/execution-report.html web/reports/history/build-${{ github.run_number }}/ || true
+          cp web_e2e/Test_Results/Excel/selenium-report.xlsx web/reports/latest/ || true
 
       - name: Upload Pages Artifact
         uses: actions/upload-pages-artifact@v3
