@@ -9,15 +9,21 @@ while [ "`adb shell getprop sys.boot_completed | tr -d '\r'`" != "1" ] ; do
   sleep 5
 done
 
-# Additional wait for package manager service to be stable
-sleep 15
+echo "System boot completed. Waiting for package manager..."
+until adb shell pm list packages > /dev/null 2>&1; do
+  echo "Waiting for package manager service..."
+  sleep 5
+done
+
+# Safety buffer for system stability
+sleep 20
 
 echo "Installing APK..."
 # Retry install to avoid 'Broken pipe' errors
 adb install -r "${APK_PATH}" || (sleep 10 && adb install -r "${APK_PATH}")
 
 echo "Starting Appium Server..."
-appium --log-level warn > /tmp/appium.log 2>&1 &
+appium --log-level warn --base-path / > /tmp/appium.log 2>&1 &
 
 echo "Waiting for Appium..."
 timeout 60 bash -c 'until curl -s http://localhost:4723/status; do sleep 2; done'
