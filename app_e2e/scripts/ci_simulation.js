@@ -24,7 +24,7 @@ async function runSimulation() {
         }
     }
 
-    const excelPath = path.join(__dirname, '..', '..', 'Test_Results', 'Excel', 'android-report.xlsx');
+    const excelPath = path.join(__dirname, '..', 'Test_Results', 'Excel', 'android-report.xlsx');
     const dir = path.dirname(excelPath);
     if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
 
