@@ -36,7 +36,7 @@ jobs:
         run: |
           cd app_e2e
           npm init -y
-          npm install @wdio/cli @wdio/local-runner @wdio/mocha-framework @wdio/spec-reporter appium appium-uiautomator2-driver exceljs
+          npm install @wdio/cli @wdio/local-runner @wdio/mocha-framework @wdio/spec-reporter @wdio/appium-service appium appium-uiautomator2-driver exceljs
 
       - name: Run Appium Tests
         uses: reactivecircus/android-emulator-runner@v2
