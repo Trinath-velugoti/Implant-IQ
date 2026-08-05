@@ -48,9 +48,13 @@ jobs:
         run: |
           mkdir -p web/reports/latest
           mkdir -p web/reports/history/build-${{ github.run_number }}
-          cp web_e2e/Test_Results/HTML/execution-report.html web/reports/latest/index.html || true
-          cp web_e2e/Test_Results/HTML/execution-report.html web/reports/history/build-${{ github.run_number }}/index.html || true
-          cp web_e2e/Test_Results/Excel/selenium-report.xlsx web/reports/latest/ || true
+          if [ -f web_e2e/Test_Results/HTML/execution-report.html ]; then
+            cp web_e2e/Test_Results/HTML/execution-report.html web/reports/latest/index.html
+            cp web_e2e/Test_Results/HTML/execution-report.html web/reports/history/build-${{ github.run_number }}/index.html
+            cp web_e2e/Test_Results/Excel/selenium-report.xlsx web/reports/latest/ || true
+          else
+            echo "<html><body><h1>Report Generation in Progress</h1><p>Tests are still running or failed to output. Please check the Actions log.</p></body></html>" > web/reports/latest/index.html
+          fi
 
       - name: Upload Pages Artifact
         uses: actions/upload-pages-artifact@v3
