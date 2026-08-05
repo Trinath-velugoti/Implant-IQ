@@ -41,7 +41,7 @@ jobs:
         run: |
           cd web_e2e
           export TEST_BASE_URL="http://127.0.0.1:5173"
-          npx mocha tests/mega_web_1100.test.js --reporter utils/excelReporter.js
+          npx mocha tests/mega_web_1800.test.js --reporter utils/excelReporter.js
         continue-on-error: true
 
       - name: Prepare Reports for Deployment
