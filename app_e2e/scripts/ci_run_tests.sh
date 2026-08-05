@@ -4,7 +4,13 @@ export PATH=$PATH:$(cat $GITHUB_PATH)
 
 echo "Waiting for device to be ready..."
 adb wait-for-device
-sleep 10
+while [ "`adb shell getprop sys.boot_completed | tr -d '\r'`" != "1" ] ; do
+  echo "Waiting for system boot..."
+  sleep 5
+done
+
+# Additional wait for package manager service to be stable
+sleep 15
 
 echo "Installing APK..."
 # Retry install to avoid 'Broken pipe' errors

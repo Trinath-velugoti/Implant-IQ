@@ -11,7 +11,7 @@ exports.config = {
         platformName: 'Android',
         'appium:automationName': 'UiAutomator2',
         'appium:deviceName': 'Android Emulator',
-        'appium:app': process.env.APK_PATH || '../mobile_app/build/outputs/apk/debug/app-debug.apk',
+        'appium:app': path.isAbsolute(process.env.APK_PATH || '') ? process.env.APK_PATH : path.join(__dirname, '..', process.env.APK_PATH || 'mobile_app/build/outputs/apk/debug/app-debug.apk'),
         'appium:noReset': true,
         'appium:fullReset': false,
         'appium:autoGrantPermissions': true
