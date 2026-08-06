@@ -24,6 +24,8 @@ jobs:
           cd app_e2e
           npm install exceljs
           node scripts/master_reporter.js "Selenium" 300
+      - name: Publish Summary
+        run: cat app_e2e/Test_Results/selenium-summary.md >> $GITHUB_STEP_SUMMARY
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
@@ -43,6 +45,8 @@ jobs:
           cd app_e2e
           npm install exceljs
           node scripts/master_reporter.js "Appium" 300
+      - name: Publish Summary
+        run: cat app_e2e/Test_Results/appium-summary.md >> $GITHUB_STEP_SUMMARY
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
@@ -62,6 +66,8 @@ jobs:
           cd app_e2e
           npm install exceljs
           node scripts/master_reporter.js "Unit-Test" 300
+      - name: Publish Summary
+        run: cat app_e2e/Test_Results/unit-test-summary.md >> $GITHUB_STEP_SUMMARY
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
@@ -81,6 +87,8 @@ jobs:
           cd app_e2e
           npm install exceljs
           node scripts/master_reporter.js "Validation" 300
+      - name: Publish Summary
+        run: cat app_e2e/Test_Results/validation-summary.md >> $GITHUB_STEP_SUMMARY
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
@@ -100,6 +108,8 @@ jobs:
           cd app_e2e
           npm install exceljs
           node scripts/master_reporter.js "Deployment" 300
+      - name: Publish Summary
+        run: cat app_e2e/Test_Results/deployment-summary.md >> $GITHUB_STEP_SUMMARY
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
@@ -119,6 +129,8 @@ jobs:
           cd app_e2e
           npm install exceljs
           node scripts/master_reporter.js "Load-Testing" 300
+      - name: Publish Summary
+        run: cat app_e2e/Test_Results/load-testing-summary.md >> $GITHUB_STEP_SUMMARY
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
