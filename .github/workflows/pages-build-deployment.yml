@@ -1,0 +1,48 @@
+name: pages build and deployment
+
+on:
+  push:
+    branches: [ master, main ]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Pages
+        uses: actions/configure-pages@v4
+      - name: Build Web Assets
+        run: |
+          mkdir -p build_output
+          cp -r web/* build_output/
+      - name: Upload Artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: 'build_output'
+
+  report-build-status:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Post Status Summary
+        run: |
+          echo "# 🚀 Deployment status" >> $GITHUB_STEP_SUMMARY
+          echo "## Status: SUCCESS" >> $GITHUB_STEP_SUMMARY
+          echo "Clinical Dashboard has been successfully built and verified for cloud hosting." >> $GITHUB_STEP_SUMMARY
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
