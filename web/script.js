@@ -417,8 +417,50 @@ function downloadDataset() {
     window.location.href = `${API}/export/patients`;
 }
 
-function downloadReport(t) {
-    alert(`Generating ${t.toUpperCase()} Clinical Report...`);
+function downloadReport(format) {
+    const name = document.getElementById('res-name').innerText;
+    const pid = document.getElementById('res-pid').innerText;
+    const years = document.getElementById('res-years').innerText;
+    const rate = document.getElementById('res-rate').innerText;
+    const grade = document.getElementById('res-grade').innerText;
+    const date = document.getElementById('res-date').innerText;
+
+    if (format === 'csv') {
+        const csvContent = "data:text/csv;charset=utf-8,"
+            + "Parameter,Value\n"
+            + `Patient Name,${name}\n`
+            + `Patient ID,${pid}\n`
+            + `Prediction Date,${date}\n`
+            + `Survival Estimate,${years}\n`
+            + `Success Probability,${rate}\n`
+            + `Clinical Grade,${grade}`;
+
+        const encodedUri = encodeURI(csvContent);
+        const link = document.createElement("a");
+        link.setAttribute("href", encodedUri);
+        link.setAttribute("download", `ImplantIQ_Report_${name.replace(/ /g, '_')}.csv`);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    } else if (format === 'pdf') {
+        // Professional Print-to-PDF logic
+        const originalContent = document.body.innerHTML;
+        const printArea = document.getElementById('scr-result').innerHTML;
+
+        document.body.innerHTML = `
+            <div style="padding: 50px; font-family: sans-serif; color: #000; background: white;">
+                <h1 style="color: #1B4F9C; border-bottom: 2px solid #1B4F9C;">IMPLANT IQ - CLINICAL ANALYSIS REPORT</h1>
+                <div style="margin-top: 30px;">${printArea}</div>
+                <div style="margin-top: 50px; border-top: 1px solid #ccc; padding-top: 20px;">
+                    <p>Verified by ImplantIQ AI Lab Engine</p>
+                    <p>Timestamp: ${new Date().toLocaleString()}</p>
+                </div>
+            </div>
+        `;
+
+        window.print();
+        location.reload(); // Restore original UI
+    }
 }
 
 function loadProfile() {
