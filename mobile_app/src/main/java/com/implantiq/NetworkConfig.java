@@ -5,7 +5,7 @@ public class NetworkConfig {
      * CENTRAL NETWORK CONFIGURATION
      * Change the IP address here once, and it updates the entire app.
      */
-    public static final String IP_ADDRESS = "10.243.46.120"; // FINAL VERIFIED IP
+    public static final String IP_ADDRESS = "10.68.228.120"; // FINAL VERIFIED IP
     public static final String BASE_URL = "http://" + IP_ADDRESS + ":8080";
     
     // API Endpoints

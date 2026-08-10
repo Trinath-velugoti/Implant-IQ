@@ -1,4 +1,4 @@
-const API = "http://10.243.46.120:8080/api";
+const API = "http://10.68.228.120:8080/api";
 
 // Auth Logic
 function showAuth(scr) {
