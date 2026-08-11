@@ -89,6 +89,12 @@ public class LoginActivity extends BaseActivity {
             String name = account.getDisplayName();
             String email = account.getEmail();
             
+            // For Social Login, we map to a static ID or handle backend registration
+            getSharedPreferences("ImplantIQ", MODE_PRIVATE).edit()
+                    .putInt("doctor_id", 1) // Default for demo
+                    .putString("doctor_name", name)
+                    .apply();
+
             Toast.makeText(this, "Welcome " + name, Toast.LENGTH_SHORT).show();
             
             Intent intent = new Intent(this, DashboardActivity.class);
@@ -128,7 +134,15 @@ public class LoginActivity extends BaseActivity {
                 @Override
                 public void onSuccess(JSONObject response) {
                     try {
-                        String name = response.getJSONObject("user").getString("username");
+                        JSONObject user = response.getJSONObject("user");
+                        int id = user.getInt("id");
+                        String name = user.getString("username");
+
+                        getSharedPreferences("ImplantIQ", MODE_PRIVATE).edit()
+                                .putInt("doctor_id", id)
+                                .putString("doctor_name", name)
+                                .apply();
+
                         Toast.makeText(LoginActivity.this, "Welcome " + name, Toast.LENGTH_SHORT).show();
                         Intent intent = new Intent(LoginActivity.this, DashboardActivity.class);
                         intent.putExtra("doctor_name", name);

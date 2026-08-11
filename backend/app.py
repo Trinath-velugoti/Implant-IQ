@@ -42,25 +42,42 @@ def health():
 
 @app.route('/api/stats', methods=['GET'])
 def get_stats():
+    user_id = request.args.get('user_id')
     try:
         conn = get_db_connection()
         cursor = conn.cursor(dictionary=True)
 
+        # Base query depends on user_id
+        where_clause = "WHERE doctor_id = %s" if user_id else ""
+        params = (user_id,) if user_id else ()
+
         # 1. Total Unique Patients
-        cursor.execute("SELECT COUNT(DISTINCT patient_id) as total FROM patients")
+        cursor.execute(f"SELECT COUNT(DISTINCT patient_id) as total FROM patients {where_clause}", params)
         total_patients = cursor.fetchone()['total']
 
-        # 2. Avg Success Rate (Clinical Effectiveness)
-        cursor.execute("SELECT AVG(success_rate) as avg_rate FROM patients")
+        # 2. Avg Success Rate
+        cursor.execute(f"SELECT AVG(success_rate) as avg_rate FROM patients {where_clause}", params)
         avg_rate = cursor.fetchone()['avg_rate'] or 0.0
 
         # 3. Active Predictions (Today)
         today = datetime.now().strftime('%Y-%m-%d')
-        cursor.execute("SELECT COUNT(*) as total FROM patients WHERE prediction_date = %s", (today,))
+        today_where = f"WHERE prediction_date = %s"
+        today_params = [today]
+        if user_id:
+            today_where += " AND doctor_id = %s"
+            today_params.append(user_id)
+
+        cursor.execute(f"SELECT COUNT(*) as total FROM patients {today_where}", tuple(today_params))
         today_preds = cursor.fetchone()['total']
 
-        # 4. Critical Risks (Grade 'C' or success_rate < 70%)
-        cursor.execute("SELECT COUNT(*) as total FROM patients WHERE grade = 'C' OR success_rate < 70")
+        # 4. Critical Risks
+        risk_where = f"WHERE (grade = 'C' OR success_rate < 70)"
+        risk_params = []
+        if user_id:
+            risk_where += " AND doctor_id = %s"
+            risk_params.append(user_id)
+
+        cursor.execute(f"SELECT COUNT(*) as total FROM patients {risk_where}", tuple(risk_params))
         critical_risks = cursor.fetchone()['total']
 
         cursor.close()
@@ -79,14 +96,23 @@ def get_stats():
 @app.route('/api/analyze-xray', methods=['POST'])
 def analyze_xray():
     """
-    Simulates AI extraction of clinical markers from an uploaded image.
-    Returns unique, high-accuracy parameters that vary per clinical scan.
+    Simulates AI extraction only for valid X-Ray files.
     """
-    # Simulate a delay for processing
-    import time
-    time.sleep(1)
+    if 'file' not in request.files:
+        return jsonify({"error": "No image uploaded", "status": "rejected"}), 400
 
-    # Generate random but realistic dental parameters
+    file = request.files['file']
+    if file.filename == '':
+        return jsonify({"error": "Empty filename", "status": "rejected"}), 400
+
+    # Logic: Accept only image types
+    if not file.content_type.startswith('image/'):
+        return jsonify({"error": "Invalid clinical format. Please upload a valid X-Ray image.", "status": "rejected"}), 400
+
+    # Simulate processing
+    import time
+    time.sleep(1.5)
+
     return jsonify({
         "boneDensity": round(random.uniform(0.8, 2.2), 2),
         "boneHeight": round(random.uniform(8.0, 20.0), 1),
@@ -149,11 +175,20 @@ def get_recent():
 
 @app.route('/api/patients', methods=['GET'])
 def get_patients():
+    user_id = request.args.get('user_id')
     try:
         conn = get_db_connection()
         cursor = conn.cursor(dictionary=True)
-        # Standardized date format for frontend filtering: DD/MM/YYYY
-        cursor.execute("SELECT patient_id, name, DATE_FORMAT(prediction_date, '%d/%m/%Y') as prediction_date, grade FROM patients ORDER BY id DESC")
+
+        query = "SELECT patient_id, name, DATE_FORMAT(prediction_date, '%d/%m/%Y') as prediction_date, grade FROM patients"
+        params = []
+        if user_id:
+            query += " WHERE doctor_id = %s"
+            params.append(user_id)
+
+        query += " ORDER BY id DESC"
+
+        cursor.execute(query, tuple(params))
         patients = cursor.fetchall()
         cursor.close()
         conn.close()
@@ -230,6 +265,7 @@ def login():
 def predict():
     data = request.json
     patient_name = data.get('patientName', 'New Patient')
+    doctor_id = data.get('doctor_id', 1) # Default to 1 if not provided
 
     # Run AI Analysis using the predictor module
     result = predictor.predict(
@@ -248,8 +284,8 @@ def predict():
         conn = get_db_connection()
         cursor = conn.cursor()
 
-        # Check if patient exists by name
-        cursor.execute("SELECT patient_id FROM patients WHERE name = %s", (patient_name,))
+        # Check if patient exists by name for THIS doctor
+        cursor.execute("SELECT patient_id FROM patients WHERE name = %s AND doctor_id = %s", (patient_name, doctor_id))
         row = cursor.fetchone()
 
         if row:
@@ -265,9 +301,9 @@ def predict():
             next_id = (max_id_row[0] if max_id_row and max_id_row[0] else 1000) + 1
             pid = f"PID-{next_id}"
             cursor.execute("""
-                INSERT INTO patients (patient_id, name, prediction_date, grade, survival_years, success_rate)
-                VALUES (%s, %s, CURDATE(), %s, %s, %s)
-            """, (pid, patient_name, result['grade'], result['survival_years'], result['success_rate']))
+                INSERT INTO patients (patient_id, name, prediction_date, grade, survival_years, success_rate, doctor_id)
+                VALUES (%s, %s, CURDATE(), %s, %s, %s, %s)
+            """, (pid, patient_name, result['grade'], result['survival_years'], result['success_rate'], doctor_id))
 
         conn.commit()
         cursor.close()

@@ -21,6 +21,7 @@ async function performLogin() {
         });
         const d = await r.json();
         if(d.status === 'success') {
+            localStorage.setItem('doctor_id', d.user.id);
             localStorage.setItem('doctor_name', d.user.username);
             localStorage.setItem('doctor_email', d.user.email);
             navTo('dash');
@@ -138,9 +139,10 @@ function performLogout() {
 // Data Handling
 async function fetchDash() {
     const name = localStorage.getItem('doctor_name') || "Dr. Trinath";
+    const userId = localStorage.getItem('doctor_id');
     document.getElementById('doc-name-display').innerText = name;
     try {
-        const r = await fetch(`${API}/stats`);
+        const r = await fetch(`${API}/stats?user_id=${userId}`);
         const d = await r.json();
 
         // Store server's today date for consistent filtering
@@ -151,7 +153,7 @@ async function fetchDash() {
         document.getElementById('c-active').innerText = d.activePredictions || 0;
         document.getElementById('c-risks').innerText = d.criticalRisks || 0;
 
-        const rec = await fetch(`${API}/recent`);
+        const rec = await fetch(`${API}/recent?user_id=${userId}`);
         const recent = await rec.json();
         const container = document.getElementById('dash-recent-list');
         container.innerHTML = '';
@@ -171,8 +173,9 @@ async function fetchDash() {
 
 let allPatients = [];
 async function loadPatients(filter = null) {
+    const userId = localStorage.getItem('doctor_id');
     try {
-        const r = await fetch(`${API}/patients`);
+        const r = await fetch(`${API}/patients?user_id=${userId}`);
         allPatients = await r.json();
         let displayData = allPatients;
 
@@ -267,25 +270,48 @@ function filterPatientsTable() {
     renderPatientsCards(filtered);
 }
 
-// AI Lab & Prediction
-function handleFileUpload(input) {
+async function handleFileUpload(input) {
     const status = document.getElementById('up-status');
     if(input.files && input.files[0]) {
-        status.innerText = "Extracting Bone Parameters...";
+        const file = input.files[0];
+
+        // Basic check for image type (X-Ray validation)
+        if (!file.type.startsWith('image/')) {
+            status.innerText = "Error: Invalid X-Ray File Type";
+            status.style.color = "var(--error)";
+            input.value = ""; // Clear
+            return;
+        }
+
+        status.innerText = "Analyzing Clinical Image...";
         status.style.color = "var(--accent)";
-        setTimeout(async () => {
-            try {
-                const r = await fetch(`${API}/analyze-xray`, {method: 'POST'});
-                const d = await r.json();
+
+        const formData = new FormData();
+        formData.append('file', file);
+
+        try {
+            const r = await fetch(`${API}/analyze-xray`, {
+                method: 'POST',
+                body: formData
+            });
+            const d = await r.json();
+
+            if (d.status === 'success') {
                 document.getElementById('in-den').value = d.boneDensity;
                 document.getElementById('in-h').value = d.boneHeight;
                 document.getElementById('in-w').value = d.boneWidth;
                 document.getElementById('in-l').value = d.implantLength;
                 document.getElementById('in-d').value = d.implantDiameter;
-                status.innerText = "X-Ray Analyzed ✓";
+                status.innerText = "X-Ray Analysis SUCCESS ✓";
                 status.style.color = "var(--success)";
-            } catch(e) { status.innerText = "Check Connection"; }
-        }, 1200);
+            } else {
+                status.innerText = d.error || "Analysis Rejected";
+                status.style.color = "var(--error)";
+            }
+        } catch(e) {
+            status.innerText = "Clinical Cloud Unreachable";
+            status.style.color = "var(--error)";
+        }
     }
 }
 
@@ -301,6 +327,7 @@ async function runAnalysis() {
             clearInterval(interval);
             const payload = {
                 patientName: name,
+                doctor_id: localStorage.getItem('doctor_id'),
                 boneDensity: parseFloat(document.getElementById('in-den').value),
                 boneHeight: parseFloat(document.getElementById('in-h').value),
                 boneWidth: parseFloat(document.getElementById('in-w').value),
