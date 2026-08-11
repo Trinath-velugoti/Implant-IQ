@@ -6,14 +6,46 @@ import random
 import jwt
 import datetime
 import bcrypt
+from flask_mail import Mail, Message
 from predict import ImplantPredictor
 
 app = Flask(__name__)
 CORS(app)
 
 # SECURITY CONFIG
-SECRET_KEY = "SENTINEL_SECURE_PROTO_X_99" # In production, use env variable
+SECRET_KEY = "SENTINEL_SECURE_PROTO_X_99"
 app.config['SECRET_KEY'] = SECRET_KEY
+
+# MAIL CONFIGURATION
+app.config['MAIL_SERVER'] = 'smtp.gmail.com'
+app.config['MAIL_PORT'] = 587
+app.config['MAIL_USE_TLS'] = True
+app.config['MAIL_USERNAME'] = 'your-clinical-email@gmail.com' # CHANGE THIS
+app.config['MAIL_PASSWORD'] = 'your-app-password'            # CHANGE THIS
+app.config['MAIL_DEFAULT_SENDER'] = 'your-clinical-email@gmail.com'
+
+mail = Mail(app)
+
+def send_otp_email(target_email, otp_code):
+    try:
+        msg = Message("ImplantIQ - Clinical Verification Code",
+                      recipients=[target_email])
+        msg.body = f"""
+        Hello Doctor,
+
+        Your 6-digit clinical verification code for ImplantIQ Pro is: {otp_code}
+
+        This code will expire in 5 minutes.
+        If you did not request this, please secure your account immediately.
+
+        Regards,
+        ImplantIQ AI Lab Security Team
+        """
+        mail.send(msg)
+        return True
+    except Exception as e:
+        print(f"Mail Error: {e}")
+        return False
 
 db_config = {
     "host": "localhost",
@@ -78,12 +110,13 @@ def signup():
         cursor.close()
         conn.close()
 
-        print(f"\n[SENTINEL SECURE] Registration OTP for {email} is: {otp}\n")
+        # SEND REAL EMAIL
+        sent = send_otp_email(email, otp)
 
         return jsonify({
             "status": "otp_sent",
-            "message": "Verification code sent to " + email,
-            "demo_otp": otp # Returning for ease of testing
+            "message": "Verification code has been sent to your clinical inbox.",
+            "mail_status": "success" if sent else "failed"
         }), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500
@@ -114,12 +147,13 @@ def resend_otp():
         cursor.close()
         conn.close()
 
-        print(f"\n[SENTINEL SECURE] NEW OTP for {email} is: {otp}\n")
+        # SEND REAL EMAIL
+        sent = send_otp_email(email, otp)
 
         return jsonify({
             "status": "otp_sent",
             "message": "New verification code sent",
-            "demo_otp": otp
+            "mail_status": "success" if sent else "failed"
         }), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500
