@@ -90,7 +90,8 @@ public class DashboardActivity extends BaseActivity {
 
     private void fetchRecentPredictions() {
         recentContainer.removeAllViews();
-        apiService.getArray(NetworkConfig.API_RECENT, new ApiService.ApiCallback<JSONArray>() {
+        int userId = getSharedPreferences("ImplantIQ", MODE_PRIVATE).getInt("doctor_id", 1);
+        apiService.getArray(NetworkConfig.API_RECENT + "?user_id=" + userId, new ApiService.ApiCallback<JSONArray>() {
             @Override
             public void onSuccess(JSONArray response) {
                 try {

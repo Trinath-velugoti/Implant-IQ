@@ -158,15 +158,31 @@ def export_patients():
 
 @app.route('/api/recent', methods=['GET'])
 def get_recent():
+    user_id = request.args.get('user_id')
     try:
         conn = get_db_connection()
         cursor = conn.cursor(dictionary=True)
-        cursor.execute("""
+
+        query = """
             SELECT patient_id, name, DATE_FORMAT(prediction_date, '%d %b %Y') as date,
             grade as result, survival_years, success_rate
-            FROM patients ORDER BY id DESC LIMIT 5
-        """)
+            FROM patients
+        """
+        params = []
+        if user_id:
+            query += " WHERE doctor_id = %s"
+            params.append(user_id)
+
+        query += " ORDER BY id DESC LIMIT 5"
+
+        cursor.execute(query, tuple(params))
         recent = cursor.fetchall()
+
+        # Ensure numeric values are floats
+        for p in recent:
+            p['survival_years'] = float(p['survival_years'])
+            p['success_rate'] = float(p['success_rate'])
+
         cursor.close()
         conn.close()
         return jsonify(recent)

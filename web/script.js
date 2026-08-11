@@ -62,6 +62,7 @@ function performGoogleLogin() {
 
         setTimeout(() => {
             alert(`ImplantIQ Identity Protocol:\n\nGoogle Account: ${userEmail}\nAuthentication: SUCCESS`);
+            localStorage.setItem('doctor_id', '999'); // Use 999 for simulation to show empty data for new user demo
             localStorage.setItem('doctor_name', userName);
             localStorage.setItem('doctor_email', userEmail);
             navTo('dash');
@@ -157,7 +158,11 @@ async function fetchDash() {
         const recent = await rec.json();
         const container = document.getElementById('dash-recent-list');
         container.innerHTML = '';
-        recent.forEach(p => {
+
+        if (recent.length === 0) {
+            container.innerHTML = `<p style="color:var(--text-secondary); text-align:center; padding: 2rem; border: 1px dashed var(--border); border-radius: 15px;">No recent clinical insights. Perform a new prediction to see data.</p>`;
+        } else {
+            recent.forEach(p => {
             const isRisk = (p.result || "").includes('C') || (p.grade || "").includes('C');
             container.innerHTML += `
                 <div class="item-card" onclick="viewPatientDetail('${p.name}', '${p.patient_id}')" style="cursor:pointer">
@@ -355,8 +360,9 @@ async function runAnalysis() {
 
 // Reports & Analytics
 async function fetchAnalytics() {
+    const userId = localStorage.getItem('doctor_id');
     try {
-        const r = await fetch(`${API}/stats`);
+        const r = await fetch(`${API}/stats?user_id=${userId}`);
         const d = await r.json();
         const total = d.totalPatients || d.totalPredictions || 0;
         const risks = d.criticalRisks || 0;
