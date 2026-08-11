@@ -58,8 +58,7 @@ public class DashboardActivity extends BaseActivity {
     }
 
     private void fetchLiveStats() {
-        int userId = getSharedPreferences("ImplantIQ", MODE_PRIVATE).getInt("doctor_id", 1);
-        apiService.get(NetworkConfig.API_STATS + "?user_id=" + userId, new ApiService.ApiCallback<JSONObject>() {
+        apiService.get(NetworkConfig.API_STATS, new ApiService.ApiCallback<JSONObject>() {
             @Override
             public void onSuccess(JSONObject response) {
                 try {
@@ -90,8 +89,7 @@ public class DashboardActivity extends BaseActivity {
 
     private void fetchRecentPredictions() {
         recentContainer.removeAllViews();
-        int userId = getSharedPreferences("ImplantIQ", MODE_PRIVATE).getInt("doctor_id", 1);
-        apiService.getArray(NetworkConfig.API_RECENT + "?user_id=" + userId, new ApiService.ApiCallback<JSONArray>() {
+        apiService.getArray(NetworkConfig.API_RECENT, new ApiService.ApiCallback<JSONArray>() {
             @Override
             public void onSuccess(JSONArray response) {
                 try {
@@ -214,6 +212,14 @@ public class DashboardActivity extends BaseActivity {
             }
             if (id == R.id.nav_settings) {
                 startActivity(new Intent(this, SettingsActivity.class));
+                return true;
+            }
+            if (id == R.id.nav_logout) {
+                apiService.clearSession();
+                Intent intent = new Intent(this, LoginActivity.class);
+                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                startActivity(intent);
+                finish();
                 return true;
             }
             return false;

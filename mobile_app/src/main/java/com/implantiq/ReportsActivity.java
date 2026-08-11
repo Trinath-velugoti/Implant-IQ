@@ -46,8 +46,7 @@ public class ReportsActivity extends BaseActivity {
     }
 
     private void fetchAnalyticsData() {
-        int userId = getSharedPreferences("ImplantIQ", MODE_PRIVATE).getInt("doctor_id", 1);
-        apiService.get(NetworkConfig.API_STATS + "?user_id=" + userId, new ApiService.ApiCallback<JSONObject>() {
+        apiService.get(NetworkConfig.API_STATS, new ApiService.ApiCallback<JSONObject>() {
             @Override
             public void onSuccess(JSONObject response) {
                 try {

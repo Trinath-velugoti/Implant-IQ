@@ -9,88 +9,94 @@ function showAuth(scr) {
     if(target) target.classList.add('active');
 }
 
+// AUTHENTICATION STATE
+let authToken = localStorage.getItem('auth_token');
+
 async function performLogin() {
     const email = document.getElementById('l-email').value;
     const pass = document.getElementById('l-pass').value;
     if(!email || !pass) { alert("Enter clinical credentials"); return; }
+
     try {
-        const r = await fetch(`${API}/login`, {
+        const r = await fetch(`${API}/auth/login`, {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
             body: JSON.stringify({email, password: pass})
         });
         const d = await r.json();
+
         if(d.status === 'success') {
+            localStorage.setItem('auth_token', d.token);
             localStorage.setItem('doctor_id', d.user.id);
             localStorage.setItem('doctor_name', d.user.username);
-            localStorage.setItem('doctor_email', d.user.email);
             navTo('dash');
-        } else { alert(d.error); }
-    } catch(e) { performGoogleLogin(); }
+        } else {
+            alert(d.error || "Invalid Credentials");
+        }
+    } catch(e) { alert("Server Connection Failed"); }
 }
 
 async function performSignup() {
     const name = document.getElementById('s-name').value;
     const email = document.getElementById('s-email').value;
     const pass = document.getElementById('s-pass').value;
+
     if(!name || !email || !pass) return alert("Fill all fields");
+
     try {
-        const r = await fetch(`${API}/signup`, {
+        const r = await fetch(`${API}/auth/signup`, {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
             body: JSON.stringify({username: name, email, password: pass})
         });
         const d = await r.json();
+
+        if(d.status === 'otp_sent') {
+            localStorage.setItem('temp_email', email);
+            alert("Verification Code Sent to " + email + "\n\nDemo Code: " + d.demo_otp);
+            showAuth('otp'); // Show OTP Screen
+        } else {
+            alert(d.error);
+        }
+    } catch(e) { alert("Registration Failed"); }
+}
+
+async function verifyOTP() {
+    const email = localStorage.getItem('temp_email');
+    const otp = document.getElementById('o-code').value;
+
+    try {
+        const r = await fetch(`${API}/auth/verify-otp`, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({email, otp})
+        });
+        const d = await r.json();
+
         if(d.status === 'success') {
-            alert("Clinic Registered Successfully!");
+            alert("Account Activated Successfully!");
             showAuth('login');
-        } else { alert(d.error); }
-    } catch(e) { alert("Registration failed. Check backend."); }
+        } else {
+            alert(d.error);
+        }
+    } catch(e) { alert("OTP Verification Failed"); }
 }
 
 function performGoogleLogin() {
-    const clientId = 'YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com';
+    const userEmail = "velogotitrinath1115.sse@saveetha.com";
+    const userName = "Trinath Velugoti";
 
-    // Professional Simulation for Testing/Demo
-    if (clientId.includes('YOUR_GOOGLE')) {
-        const userEmail = "velogotitrinath1115.sse@saveetha.com";
-        const userName = "Trinath Velugoti";
+    const btn = document.querySelector('.google-btn');
+    const originalText = btn.innerHTML;
+    btn.innerHTML = `<img src="https://www.gstatic.com/images/branding/product/1x/gsa_512dp.png" alt="Google"> Authenticating...`;
 
-        const btn = document.querySelector('.google-btn');
-        const originalText = btn.innerHTML;
-        btn.innerHTML = `<img src="https://www.gstatic.com/images/branding/product/1x/gsa_512dp.png" alt="Google"> Authenticating...`;
-
-        setTimeout(() => {
-            alert(`ImplantIQ Identity Protocol:\n\nGoogle Account: ${userEmail}\nAuthentication: SUCCESS`);
-            localStorage.setItem('doctor_id', '999'); // Use 999 for simulation to show empty data for new user demo
-            localStorage.setItem('doctor_name', userName);
-            localStorage.setItem('doctor_email', userEmail);
-            navTo('dash');
-            btn.innerHTML = originalText;
-        }, 1500);
-        return;
-    }
-
-    // Real SDK - Requires Google Cloud Setup
-    if (typeof google === 'undefined') return;
-    const client = google.accounts.oauth2.initTokenClient({
-        client_id: clientId,
-        scope: 'https://www.googleapis.com/auth/userinfo.profile https://www.googleapis.com/auth/userinfo.email',
-        callback: (tokenResponse) => {
-            if (tokenResponse && tokenResponse.access_token) {
-                fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
-                    headers: { Authorization: `Bearer ${tokenResponse.access_token}` }
-                })
-                .then(res => res.json())
-                .then(user => {
-                    localStorage.setItem('doctor_name', user.name);
-                    localStorage.setItem('doctor_email', user.email);
-                    navTo('dash');
-                });
-            }
-        },
-    });
-    client.requestAccessToken();
+    setTimeout(() => {
+        alert(`ImplantIQ Identity Protocol:\n\nGoogle Account: ${userEmail}\nAuthentication: SUCCESS`);
+        localStorage.setItem('doctor_id', '999');
+        localStorage.setItem('doctor_name', userName);
+        navTo('dash');
+        btn.innerHTML = originalText;
+    }, 1500);
 }
 
 function performResetPassword() {
@@ -115,6 +121,7 @@ function navTo(scr, filter = null) {
     if(scr === 'pat-detail') targetId = 'scr-pat-detail';
     if(scr === 'result') targetId = 'scr-result';
     if(scr === 'proc') targetId = 'scr-proc';
+    if(scr === 'otp') targetId = 'scr-otp';
 
     const target = document.getElementById(targetId);
     if(target) target.classList.add('active');
@@ -141,20 +148,25 @@ function performLogout() {
 async function fetchDash() {
     const name = localStorage.getItem('doctor_name') || "Dr. Trinath";
     const userId = localStorage.getItem('doctor_id');
+    const token = localStorage.getItem('auth_token');
+
     document.getElementById('doc-name-display').innerText = name;
     try {
-        const r = await fetch(`${API}/stats?user_id=${userId}`);
+        const r = await fetch(`${API}/stats?user_id=${userId}`, {
+            headers: {'Authorization': token}
+        });
         const d = await r.json();
 
-        // Store server's today date for consistent filtering
         if (d.serverToday) localStorage.setItem('server_today', d.serverToday);
 
-        document.getElementById('c-pats').innerText = d.totalPatients || d.totalPredictions || 0;
+        document.getElementById('c-pats').innerText = d.totalPatients || 0;
         document.getElementById('c-acc').innerText = (d.successRate || 0) + "%";
         document.getElementById('c-active').innerText = d.activePredictions || 0;
         document.getElementById('c-risks').innerText = d.criticalRisks || 0;
 
-        const rec = await fetch(`${API}/recent?user_id=${userId}`);
+        const rec = await fetch(`${API}/recent?user_id=${userId}`, {
+            headers: {'Authorization': token}
+        });
         const recent = await rec.json();
         const container = document.getElementById('dash-recent-list');
         container.innerHTML = '';

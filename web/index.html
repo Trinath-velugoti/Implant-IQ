@@ -85,6 +85,23 @@
                     <button class="btn-action pill primary full-width mt-1" onclick="performResetPassword()">Send Reset Link</button>
                 </div>
             </div>
+
+            <!-- 5. OTP VERIFICATION -->
+            <div id="scr-otp" class="screen flex-center">
+                <div class="auth-card">
+                    <div class="auth-header">
+                        <div class="icon-lg">✉️</div>
+                        <h2>Verify Identity</h2>
+                        <p>Enter the 6-digit clinical code sent to your email</p>
+                    </div>
+                    <div class="input-group">
+                        <label>Verification Code</label>
+                        <input type="text" id="o-code" placeholder="123456" maxlength="6" style="text-align: center; letter-spacing: 10px; font-size: 1.5rem;">
+                    </div>
+                    <button class="btn-action pill success full-width" onclick="verifyOTP()">Verify & Activate</button>
+                    <p class="footer-text mt-2">Didn't receive it? <span class="link-text bold">Resend OTP</span></p>
+                </div>
+            </div>
         </div>
 
         <!-- 5. DASHBOARD -->

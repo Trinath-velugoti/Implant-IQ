@@ -114,10 +114,8 @@ public class PredictActivity extends BaseActivity {
         }
 
         try {
-            int userId = getSharedPreferences("ImplantIQ", MODE_PRIVATE).getInt("doctor_id", 1);
             JSONObject body = new JSONObject();
             body.put("patientName", name);
-            body.put("doctor_id", userId);
             body.put("boneDensity", Double.parseDouble(etBoneDensity.getText().toString()));
             body.put("boneHeight", Double.parseDouble(etBoneHeight.getText().toString()));
             body.put("boneWidth", Double.parseDouble(etBoneWidth.getText().toString()));

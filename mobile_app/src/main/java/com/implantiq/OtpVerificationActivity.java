@@ -5,57 +5,93 @@ import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.widget.EditText;
+import android.widget.TextView;
 import android.widget.Toast;
-import androidx.appcompat.app.AppCompatActivity;
+import com.google.android.material.button.MaterialButton;
+import org.json.JSONException;
+import org.json.JSONObject;
 
-public class OtpVerificationActivity extends AppCompatActivity {
+public class OtpVerificationActivity extends BaseActivity {
 
-    private EditText[] otpFields = new EditText[6];
+    private ApiService apiService;
+    private EditText otp1, otp2, otp3, otp4, otp5, otp6;
+    private String email;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_otp_verification);
 
-        otpFields[0] = findViewById(R.id.otp1);
-        otpFields[1] = findViewById(R.id.otp2);
-        otpFields[2] = findViewById(R.id.otp3);
-        otpFields[3] = findViewById(R.id.otp4);
-        otpFields[4] = findViewById(R.id.otp5);
-        otpFields[5] = findViewById(R.id.otp6);
+        apiService = ApiService.getInstance(this);
+        email = getIntent().getStringExtra("email");
 
-        setupOtpListeners();
+        TextView tvSubtitle = findViewById(R.id.tv_subtitle);
+        tvSubtitle.setText("Enter the 6-digit code sent to " + email);
+
+        otp1 = findViewById(R.id.otp1);
+        otp2 = findViewById(R.id.otp2);
+        otp3 = findViewById(R.id.otp3);
+        otp4 = findViewById(R.id.otp4);
+        otp5 = findViewById(R.id.otp5);
+        otp6 = findViewById(R.id.otp6);
+
+        setupOtpInputs();
+
+        MaterialButton btnVerify = findViewById(R.id.btn_verify);
+        btnVerify.setOnClickListener(v -> {
+            applyGlowEffect(v);
+            verifyOtp();
+        });
 
         findViewById(R.id.btn_back).setOnClickListener(v -> finish());
-
-        findViewById(R.id.btn_verify).setOnClickListener(v -> {
-            StringBuilder otp = new StringBuilder();
-            for (EditText field : otpFields) {
-                otp.append(field.getText().toString());
-            }
-
-            if (otp.length() < 6) {
-                Toast.makeText(this, "Please enter complete code", Toast.LENGTH_SHORT).show();
-            } else {
-                Toast.makeText(this, "Verification Successful", Toast.LENGTH_SHORT).show();
-                startActivity(new Intent(this, DashboardActivity.class));
-                finishAffinity();
-            }
-        });
     }
 
-    private void setupOtpListeners() {
-        for (int i = 0; i < 6; i++) {
+    private void setupOtpInputs() {
+        EditText[] inputs = {otp1, otp2, otp3, otp4, otp5, otp6};
+        for (int i = 0; i < inputs.length; i++) {
             final int index = i;
-            otpFields[i].addTextChangedListener(new TextWatcher() {
+            inputs[i].addTextChangedListener(new TextWatcher() {
                 @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
                 @Override public void onTextChanged(CharSequence s, int start, int before, int count) {
-                    if (s.length() == 1 && index < 5) {
-                        otpFields[index + 1].requestFocus();
+                    if (s.length() == 1 && index < inputs.length - 1) {
+                        inputs[index + 1].requestFocus();
                     }
                 }
                 @Override public void afterTextChanged(Editable s) {}
             });
         }
+    }
+
+    private void verifyOtp() {
+        String code = otp1.getText().toString() + otp2.getText().toString() + 
+                     otp3.getText().toString() + otp4.getText().toString() + 
+                     otp5.getText().toString() + otp6.getText().toString();
+
+        if (code.length() < 6) {
+            Toast.makeText(this, "Complete the code", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        try {
+            JSONObject body = new JSONObject();
+            body.put("email", email);
+            body.put("otp", code);
+
+            apiService.post("/api/auth/verify-otp", body, new ApiService.ApiCallback<JSONObject>() {
+                @Override
+                public void onSuccess(JSONObject response) {
+                    Toast.makeText(OtpVerificationActivity.this, "Clinical Access Activated", Toast.LENGTH_LONG).show();
+                    Intent intent = new Intent(OtpVerificationActivity.this, LoginActivity.class);
+                    intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                    startActivity(intent);
+                    finish();
+                }
+
+                @Override
+                public void onError(String message) {
+                    Toast.makeText(OtpVerificationActivity.this, message, Toast.LENGTH_LONG).show();
+                }
+            });
+        } catch (JSONException e) { e.printStackTrace(); }
     }
 }

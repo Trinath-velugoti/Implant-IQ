@@ -11,12 +11,21 @@ public class SplashActivity extends BaseActivity {
         setContentView(R.layout.activity_splash);
         makeFullScreen();
 
-        if (findViewById(R.id.btn_get_started) != null) {
-            findViewById(R.id.btn_get_started).setOnClickListener(v -> {
-                applyGlowEffect(v);
-                startActivity(new Intent(SplashActivity.this, OnboardingActivity.class));
-                finish();
-            });
+        ApiService apiService = ApiService.getInstance(this);
+
+        if (apiService.getAuthToken() != null) {
+            // Persistent Session - Go to Dashboard
+            startActivity(new Intent(this, DashboardActivity.class));
+            finish();
+        } else {
+            // No session - Standard onboarding
+            if (findViewById(R.id.btn_get_started) != null) {
+                findViewById(R.id.btn_get_started).setOnClickListener(v -> {
+                    applyGlowEffect(v);
+                    startActivity(new Intent(SplashActivity.this, OnboardingActivity.class));
+                    finish();
+                });
+            }
         }
     }
 }

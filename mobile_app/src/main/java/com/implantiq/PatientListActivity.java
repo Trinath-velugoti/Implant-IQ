@@ -62,8 +62,7 @@ public class PatientListActivity extends BaseActivity {
 
     private void fetchPatients(String filter) {
         swipeRefresh.setRefreshing(true);
-        int userId = getSharedPreferences("ImplantIQ", MODE_PRIVATE).getInt("doctor_id", 1);
-        apiService.getArray(NetworkConfig.API_PATIENTS + "?user_id=" + userId, new ApiService.ApiCallback<JSONArray>() {
+        apiService.getArray(NetworkConfig.API_PATIENTS, new ApiService.ApiCallback<JSONArray>() {
             @Override
             public void onSuccess(JSONArray response) {
                 patientList.clear();
