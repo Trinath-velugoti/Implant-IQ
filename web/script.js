@@ -172,7 +172,8 @@ async function fetchDash() {
                         <span class="status-pill" style="background:${isRisk ? 'var(--error)' : 'var(--success)'}; color:white">${isRisk ? 'Risk' : 'Passed'}</span>
                     </div>
                 </div>`;
-        });
+            });
+        }
     } catch(e) { console.error("Offline"); }
 }
 
