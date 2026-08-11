@@ -7,22 +7,25 @@ import jwt
 import datetime
 import bcrypt
 from flask_mail import Mail, Message
+from dotenv import load_dotenv
 from predict import ImplantPredictor
+
+# Load environment variables from .env file
+load_dotenv()
 
 app = Flask(__name__)
 CORS(app)
 
 # SECURITY CONFIG
-SECRET_KEY = "SENTINEL_SECURE_PROTO_X_99"
-app.config['SECRET_KEY'] = SECRET_KEY
+app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'SENTINEL_SECURE_PROTO_X_99')
 
 # MAIL CONFIGURATION
 app.config['MAIL_SERVER'] = 'smtp.gmail.com'
 app.config['MAIL_PORT'] = 587
 app.config['MAIL_USE_TLS'] = True
-app.config['MAIL_USERNAME'] = 'your-clinical-email@gmail.com' # CHANGE THIS
-app.config['MAIL_PASSWORD'] = 'your-app-password'            # CHANGE THIS
-app.config['MAIL_DEFAULT_SENDER'] = 'your-clinical-email@gmail.com'
+app.config['MAIL_USERNAME'] = os.getenv('MAIL_USERNAME')
+app.config['MAIL_PASSWORD'] = os.getenv('MAIL_PASSWORD')
+app.config['MAIL_DEFAULT_SENDER'] = os.getenv('MAIL_USERNAME')
 
 mail = Mail(app)
 

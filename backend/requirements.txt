@@ -9,3 +9,4 @@ pytest
 PyJWT
 bcrypt
 flask-mail
+python-dotenv
