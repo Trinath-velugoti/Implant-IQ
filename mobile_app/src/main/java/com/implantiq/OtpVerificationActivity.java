@@ -43,7 +43,32 @@ public class OtpVerificationActivity extends BaseActivity {
             verifyOtp();
         });
 
+        findViewById(R.id.tv_resend).setOnClickListener(v -> {
+            applyGlowEffect(v);
+            resendOtp();
+        });
+
         findViewById(R.id.btn_back).setOnClickListener(v -> finish());
+    }
+
+    private void resendOtp() {
+        try {
+            JSONObject body = new JSONObject();
+            body.put("email", email);
+
+            apiService.post("/api/auth/resend-otp", body, new ApiService.ApiCallback<JSONObject>() {
+                @Override
+                public void onSuccess(JSONObject response) {
+                    String demoOtp = response.optString("demo_otp", "123456");
+                    Toast.makeText(OtpVerificationActivity.this, "New Code Sent! Demo: " + demoOtp, Toast.LENGTH_LONG).show();
+                }
+
+                @Override
+                public void onError(String message) {
+                    Toast.makeText(OtpVerificationActivity.this, "Resend failed: " + message, Toast.LENGTH_SHORT).show();
+                }
+            });
+        } catch (JSONException e) { e.printStackTrace(); }
     }
 
     private void setupOtpInputs() {

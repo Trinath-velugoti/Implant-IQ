@@ -82,6 +82,26 @@ async function verifyOTP() {
     } catch(e) { alert("OTP Verification Failed"); }
 }
 
+async function resendOTP() {
+    const email = localStorage.getItem('temp_email');
+    if(!email) return alert("Email session lost. Please signup again.");
+
+    try {
+        const r = await fetch(`${API}/auth/resend-otp`, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({email})
+        });
+        const d = await r.json();
+
+        if(d.status === 'otp_sent') {
+            alert("New Verification Code Sent!\n\nDemo Code: " + d.demo_otp);
+        } else {
+            alert(d.error);
+        }
+    } catch(e) { alert("Resend Failed"); }
+}
+
 function performGoogleLogin() {
     const userEmail = "velogotitrinath1115.sse@saveetha.com";
     const userName = "Trinath Velugoti";
@@ -171,22 +191,22 @@ async function fetchDash() {
         const container = document.getElementById('dash-recent-list');
         container.innerHTML = '';
 
-        if (recent.length === 0) {
+        if (!recent || recent.length === 0) {
             container.innerHTML = `<p style="color:var(--text-secondary); text-align:center; padding: 2rem; border: 1px dashed var(--border); border-radius: 15px;">No recent clinical insights. Perform a new prediction to see data.</p>`;
         } else {
             recent.forEach(p => {
-            const isRisk = (p.result || "").includes('C') || (p.grade || "").includes('C');
-            container.innerHTML += `
-                <div class="item-card" onclick="viewPatientDetail('${p.name}', '${p.patient_id}')" style="cursor:pointer">
-                    <div><strong>${p.name}</strong><br><small style="color:var(--text-secondary)">${p.date || p.prediction_date}</small></div>
-                    <div style="text-align:right">
-                        <span>${p.survival_years || 0}y | ${p.success_rate || 0}%</span><br>
-                        <span class="status-pill" style="background:${isRisk ? 'var(--error)' : 'var(--success)'}; color:white">${isRisk ? 'Risk' : 'Passed'}</span>
-                    </div>
-                </div>`;
+                const isRisk = (p.result || "").includes('C') || (p.grade || "").includes('C');
+                container.innerHTML += `
+                    <div class="item-card" onclick="viewPatientDetail('${p.name}', '${p.patient_id}')" style="cursor:pointer">
+                        <div><strong>${p.name}</strong><br><small style="color:var(--text-secondary)">${p.date || p.prediction_date}</small></div>
+                        <div style="text-align:right">
+                            <span>${p.survival_years || 0}y | ${p.success_rate || 0}%</span><br>
+                            <span class="status-pill" style="background:${isRisk ? 'var(--error)' : 'var(--success)'}; color:white">${isRisk ? 'Risk' : 'Passed'}</span>
+                        </div>
+                    </div>`;
             });
         }
-    } catch(e) { console.error("Offline"); }
+    } catch(e) { console.error("Offline or Session Expired"); }
 }
 
 let allPatients = [];

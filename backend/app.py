@@ -46,9 +46,9 @@ def signup():
     if not all([email, password, username]):
         return jsonify({"error": "Missing clinical credentials"}), 400
 
-    # 1. Check professional email policy
-    if not email.endswith(('.edu', '.gov', '.org', 'clinic.com', 'saveetha.com')):
-        return jsonify({"error": "Professional doctor email required"}), 403
+    # Removed strict domain check to allow testing with any valid email (Gmail, etc.)
+    if "@" not in email or "." not in email:
+        return jsonify({"error": "Valid clinical email required"}), 400
 
     # 2. Hash password
     hashed = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
@@ -78,8 +78,49 @@ def signup():
         cursor.close()
         conn.close()
 
-        # In a real app, send email here. For demo, we return it in a secure header (simulation)
-        return jsonify({"status": "otp_sent", "message": "Verification code sent to " + email, "demo_otp": otp}), 200
+        print(f"\n[SENTINEL SECURE] Registration OTP for {email} is: {otp}\n")
+
+        return jsonify({
+            "status": "otp_sent",
+            "message": "Verification code sent to " + email,
+            "demo_otp": otp # Returning for ease of testing
+        }), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/api/auth/resend-otp', methods=['POST'])
+def resend_otp():
+    data = request.json
+    email = data.get('email')
+
+    if not email: return jsonify({"error": "Email required"}), 400
+
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+
+        # Generate NEW OTP
+        otp = str(random.randint(100000, 999999))
+        expiry = datetime.datetime.now() + datetime.timedelta(minutes=5)
+
+        # Invalidate old ones
+        cursor.execute("UPDATE otps SET is_used = TRUE WHERE email = %s", (email,))
+
+        # Store NEW OTP
+        cursor.execute("INSERT INTO otps (email, otp_code, expires_at) VALUES (%s, %s, %s)",
+                       (email, otp, expiry))
+
+        conn.commit()
+        cursor.close()
+        conn.close()
+
+        print(f"\n[SENTINEL SECURE] NEW OTP for {email} is: {otp}\n")
+
+        return jsonify({
+            "status": "otp_sent",
+            "message": "New verification code sent",
+            "demo_otp": otp
+        }), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 

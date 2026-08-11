@@ -1,5 +1,6 @@
 import mysql.connector
 import random
+import bcrypt
 from datetime import datetime, timedelta
 
 # Database configuration
@@ -16,48 +17,64 @@ def init_database():
         cursor = conn.cursor()
 
         # Create Database
-        cursor.execute("CREATE DATABASE IF NOT EXISTS implantiq_db")
+        cursor.execute("DROP DATABASE IF EXISTS implantiq_db")
+        cursor.execute("CREATE DATABASE implantiq_db")
         cursor.execute("USE implantiq_db")
 
-        # Create Patients Table
+        print("--- SENTINEL SECURE: Initializing Clinical Database ---")
+
+        # 1. Create Doctors Table
         cursor.execute("""
-            CREATE TABLE IF NOT EXISTS patients (
+            CREATE TABLE doctors (
                 id INT AUTO_INCREMENT PRIMARY KEY,
+                username VARCHAR(100),
+                email VARCHAR(100) UNIQUE NOT NULL,
+                password_hash VARCHAR(255) NOT NULL,
+                phone VARCHAR(20),
+                is_verified BOOLEAN DEFAULT FALSE,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        """)
+
+        # 2. Create Patients Table (Isolated per Doctor)
+        cursor.execute("""
+            CREATE TABLE patients (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                doctor_id INT NOT NULL,
                 patient_id VARCHAR(20) UNIQUE,
                 name VARCHAR(100),
                 prediction_date DATE,
                 grade VARCHAR(5),
                 survival_years FLOAT,
-                success_rate FLOAT
+                success_rate FLOAT,
+                FOREIGN KEY (doctor_id) REFERENCES doctors(id) ON DELETE CASCADE
             )
         """)
 
-        # Create Users Table for Auth
+        # 3. Create OTP System
         cursor.execute("""
-            CREATE TABLE IF NOT EXISTS users (
+            CREATE TABLE otps (
                 id INT AUTO_INCREMENT PRIMARY KEY,
-                username VARCHAR(100),
-                email VARCHAR(100) UNIQUE,
-                password VARCHAR(255),
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                email VARCHAR(100) NOT NULL,
+                otp_code VARCHAR(6) NOT NULL,
+                expires_at DATETIME NOT NULL,
+                is_used BOOLEAN DEFAULT FALSE
             )
         """)
 
-        # Add a default doctor account
-        cursor.execute("INSERT IGNORE INTO users (username, email, password) VALUES (%s, %s, %s)",
-                       ("Dr. Trinath", "doctor@implantiq.com", "Doctor@123"))
+        # 4. Create Main Admin Doctor
+        hashed_pass = bcrypt.hashpw("Doctor@123".encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+        cursor.execute("INSERT INTO doctors (username, email, password_hash, is_verified) VALUES (%s, %s, %s, TRUE)",
+                       ("Dr. Trinath", "doctor@implantiq.com", hashed_pass))
+        admin_id = cursor.lastrowid
 
-        # Clear existing data for fresh start
-        cursor.execute("DELETE FROM patients")
-
-        # Generate 128 Mock Patients
+        # 5. Generate 128 Mock Patients for the Admin
         names = ["Aditi", "Rajesh", "Sneha", "Vikram", "Priya", "Arjun", "Anjali", "Rohan", "Kavita", "Suresh"]
         last_names = ["Rao", "Kumar", "Kapoor", "Singh", "Sharma", "Verma", "Gupta", "Mehta", "Patel", "Reddy"]
 
         mock_data = []
         start_date = datetime.now() - timedelta(days=365)
 
-        print("Generating 128 mock patients...")
         for i in range(1, 129):
             pid = f"PID-{1000 + i}"
             name = f"{random.choice(names)} {random.choice(last_names)}"
@@ -70,24 +87,22 @@ def init_database():
             else: grade = "C"
 
             survival = round(random.uniform(4, 15), 1)
+            mock_data.append((admin_id, pid, name, p_date, grade, survival, success))
 
-            mock_data.append((pid, name, p_date, grade, survival, success))
-
-        # Bulk Insert
         insert_query = """
-            INSERT INTO patients (patient_id, name, prediction_date, grade, survival_years, success_rate)
-            VALUES (%s, %s, %s, %s, %s, %s)
+            INSERT INTO patients (doctor_id, patient_id, name, prediction_date, grade, survival_years, success_rate)
+            VALUES (%s, %s, %s, %s, %s, %s, %s)
         """
         cursor.executemany(insert_query, mock_data)
 
         conn.commit()
-        print(f"Successfully inserted {cursor.rowcount} patients into MySQL!")
+        print(f"✅ Success: Database initialized with {cursor.rowcount} patients for Admin ID: {admin_id}")
 
         cursor.close()
         conn.close()
 
-    except mysql.connector.Error as err:
-        print(f"Error: {err}")
+    except Exception as err:
+        print(f"❌ Error: {err}")
 
 if __name__ == "__main__":
     init_database()
