@@ -53,7 +53,7 @@ async function performSignup() {
 
         if(d.status === 'otp_sent') {
             localStorage.setItem('temp_email', email);
-            alert("Verification Code Sent to " + email + "\n\nDemo Code: " + d.demo_otp);
+            alert("Verification Protocol Initiated.\n\nA 6-digit clinical security code has been dispatched to: " + email + "\n\nPlease check your inbox.");
             showAuth('otp'); // Show OTP Screen
         } else {
             alert(d.error);
@@ -95,7 +95,7 @@ async function resendOTP() {
         const d = await r.json();
 
         if(d.status === 'otp_sent') {
-            alert("New Verification Code Sent!\n\nDemo Code: " + d.demo_otp);
+            alert("Clinical Security Protocol: A new verification code has been dispatched to your inbox.");
         } else {
             alert(d.error);
         }

@@ -59,8 +59,7 @@ public class OtpVerificationActivity extends BaseActivity {
             apiService.post("/api/auth/resend-otp", body, new ApiService.ApiCallback<JSONObject>() {
                 @Override
                 public void onSuccess(JSONObject response) {
-                    String demoOtp = response.optString("demo_otp", "123456");
-                    Toast.makeText(OtpVerificationActivity.this, "New Code Sent! Demo: " + demoOtp, Toast.LENGTH_LONG).show();
+                    Toast.makeText(OtpVerificationActivity.this, "New Verification Code Sent to Inbox", Toast.LENGTH_LONG).show();
                 }
 
                 @Override
