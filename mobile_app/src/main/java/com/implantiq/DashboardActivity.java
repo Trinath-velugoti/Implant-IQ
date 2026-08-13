@@ -58,31 +58,20 @@ public class DashboardActivity extends BaseActivity {
     }
 
     private void fetchLiveStats() {
-        apiService.get(NetworkConfig.API_STATS, new ApiService.ApiCallback<JSONObject>() {
+        apiService.get(NetworkConfig.API_DASHBOARD_STATS, new ApiService.ApiCallback<JSONObject>() {
             @Override
             public void onSuccess(JSONObject response) {
                 try {
-                    int total = response.has("totalPatients") ? response.getInt("totalPatients") : response.optInt("totalPredictions", 0);
-                    tvPatients.setText(String.valueOf(total));
-                    tvSuccess.setText(response.optDouble("successRate", 0) + "%");
-                    tvActiveToday.setText(String.valueOf(response.optInt("activePredictions", 0)));
-                    tvCriticalRisks.setText(String.valueOf(response.optInt("criticalRisks", 0)));
-                    
-                    // Store server today for consistent filtering
-                    String serverToday = response.optString("serverToday", "");
-                    if (!serverToday.isEmpty()) {
-                        getSharedPreferences("ImplantIQ", MODE_PRIVATE).edit().putString("server_today", serverToday).apply();
-                    }
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                }
+                    tvPatients.setText(String.valueOf(response.getInt("totalPatients")));
+                    tvSuccess.setText(response.getString("successRate"));
+                    tvActiveToday.setText(String.valueOf(response.getInt("activeToday")));
+                    tvCriticalRisks.setText(String.valueOf(response.getInt("criticalRisks")));
+                } catch (JSONException e) { e.printStackTrace(); }
                 swipeRefresh.setRefreshing(false);
             }
-
             @Override
             public void onError(String message) {
                 swipeRefresh.setRefreshing(false);
-                Snackbar.make(findViewById(android.R.id.content), "Sync Error: " + message, Snackbar.LENGTH_LONG).show();
             }
         });
     }
